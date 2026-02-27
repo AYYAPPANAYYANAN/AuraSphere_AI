@@ -11,18 +11,24 @@ from supabase import create_client, Client
 # --- CONFIGURATION & KEYS ---
 app = FastAPI(title="AuraSphere SuperApp", version="GenZ-V7-Supabase")
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-SECRETS_PATH = os.path.join(BASE_DIR, "secrets.toml")
+# 1. Try to load from cloud environment variables first
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+HF_API_KEY = os.environ.get("HF_API_KEY")
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 
-try:
-    secrets = toml.load(SECRETS_PATH)
-    GROQ_API_KEY = secrets["api_keys"].get("groq")
-    HF_API_KEY = secrets["api_keys"].get("huggingface")
-    SUPABASE_URL = secrets["api_keys"].get("supabase_url")
-    SUPABASE_KEY = secrets["api_keys"].get("supabase_key")
-except Exception as e:
-    print(f"⚠️ Error loading secrets.toml: {e}")
-    GROQ_API_KEY, HF_API_KEY, SUPABASE_URL, SUPABASE_KEY = None, None, None, None
+# 2. If running locally, fall back to secrets.toml
+if not GROQ_API_KEY:
+    try:
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        SECRETS_PATH = os.path.join(BASE_DIR, "secrets.toml")
+        secrets = toml.load(SECRETS_PATH)
+        GROQ_API_KEY = secrets["api_keys"].get("groq")
+        HF_API_KEY = secrets["api_keys"].get("huggingface")
+        SUPABASE_URL = secrets["api_keys"].get("supabase_url")
+        SUPABASE_KEY = secrets["api_keys"].get("supabase_key")
+    except Exception as e:
+        print(f"⚠️ Error loading keys: {e}")
 
 GROQ_MODEL = "llama-3.3-70b-versatile"
 
@@ -409,4 +415,5 @@ html_content = """
 """
 
 @app.get("/", response_class=HTMLResponse)
+
 async def get_ui(): return html_content
