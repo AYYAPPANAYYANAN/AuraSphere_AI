@@ -1,4 +1,7 @@
-streamlit
-supabase
+fastapi
+uvicorn
+groq
 requests
-pdfplumber
+supabase
+toml
+pydantic
